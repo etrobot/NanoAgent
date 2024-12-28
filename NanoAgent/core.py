@@ -63,11 +63,13 @@ From these actions {self.actions}, convert the user's action choice into json fo
                     content = chunk.choices[0].delta.content
                     answer += content
                     print(content, end='', flush=True)
+
+            if self.msg[-1]==self.end_msg:
+                return answer
             
             self.msg.append({"role": "assistant", "content": answer})
             act = self.act_builder(answer)
-            if self.msg[-2]==self.end_msg:
-                return answer
+            self.logger.log('act', act)
             
             act = json.loads(act)
             
