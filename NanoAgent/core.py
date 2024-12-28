@@ -1,8 +1,8 @@
-import json
+import json,time
+from .logger import DebugLogger
+from datetime import datetime
 import openai
 import tiktoken
-from .logger import DebugLogger
-import time
 
 class NanoAgent:
     def __init__(self,api_key:str,base_url:str,model:str,max_tokens:int,actions=[],debug=False,retry=20):                
@@ -18,6 +18,7 @@ class NanoAgent:
         self.logger = DebugLogger(debug)
         self.language = None
         self.end_msg={"role": "user", "content": "output the final result"}
+        self.save_path = None
 
     def act_builder(self,query:str)->dict:
         sysprmt = f'''Actions Intro:
@@ -26,11 +27,11 @@ class NanoAgent:
 - final_result: output the final result.
 
 Your task:
-From these actions {self.actions}, convert the user's next action into json format :
+From these actions {self.actions}, figure out the user's next action from user query and output in json format :
 {{
     "action": "actionName",
     "input": "actionInput",
-    "lang": "language of the user's initial request"
+    "lang": "language of the user query"
 }}'''
         self.logger.log('sysprmt', sysprmt)
         retry=self.max_retries
@@ -70,36 +71,60 @@ From these actions {self.actions}, convert the user's next action into json form
         else:
             return eval(actionName+'('+actionInput+')')
 
-    def run(self,query):
-        self.msg.append({"role": "user", "content": query})
-        retry=self.max_retries
-        while retry>0:
+    def save_msg(self, filename=None):
+        """Save conversation messages to a JSON file"""
+        if not filename:
+            # Generate filename using datetime and first 14 chars of last user query
+            last_query = next((msg['content'] for msg in reversed(self.msg) if msg['role'] == 'user'), '')[:14]
+            timestamp = datetime.now().strftime('%d%m%Y_%H%M')
+            filename = f"{timestamp}_{last_query}.json"
+        
+        self.save_path = filename
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(self.msg, f, ensure_ascii=False, indent=2)
+
+    def run(self, query):
+        if query.endswith('.json'):
+            with open(query, 'r', encoding='utf-8') as f:
+                self.msg = json.load(f)
+            self.save_path = query
+        else:
+            self.msg.append({"role": "user", "content": query})
+            self.save_msg(self.save_path)
+
+        retry = self.max_retries
+        while retry > 0:
             self.logger.print('\n')
-            answer=''
+            answer = ''
             try:
-                response=self.llm.chat.completions.create(
+                response = self.llm.chat.completions.create(
                     model=self.model,
                     messages=self.msg,
                     stream=True
                 )
                 self.logger.log('user', self.msg[-1]['content'])
                 self.logger.log('assistant', '', end='')
+                
                 for chunk in response:
                     if chunk.choices[0].delta.content is not None:
                         content = chunk.choices[0].delta.content
                         answer += content
-                        print(content, end='', flush=True)
+                        yield content
                 self.logger.print('\n')
+                
             except Exception as e:
-                retry-=1
+                retry -= 1
                 self.logger.log('error', e)
                 time.sleep(30)
                 continue
 
-            if self.msg[-1]==self.end_msg:
-                return answer
+            if self.msg[-1] == self.end_msg:
+                return
             
             self.msg.append({"role": "assistant", "content": answer})
+            # Save after assistant message
+            self.save_msg(self.save_path)
+            
             act = self.act_builder(answer)
             
             self.logger.log('action', f"\n{act['action']}({act['input']})")
@@ -116,3 +141,4 @@ From these actions {self.actions}, convert the user's next action into json form
                 next_prompt = self.act_executor(act['action'], act['input'])
                 self.logger.log('next_prompt', f"\n{next_prompt}\n")
                 self.msg.append({"role": "user", "content": next_prompt})
+            self.save_msg(self.save_path)

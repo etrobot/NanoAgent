@@ -2,7 +2,7 @@
 
 [中文](README_CN.md)
 
-NanoAgent is a Python-based framework for building logical assistant agents capable of solving user requests through step-by-step planning and execution. It integrates with the OpenAI API for natural language processing and provides structured action-based workflows to deliver intelligent responses.
+NanoAgent is a Python-based framework for building ReAct agents capable of solving user requests through self-reflection and tool calling.
 
 ```mermaid
 graph TD
@@ -18,8 +18,11 @@ graph TD
 
 ## Features
 
-- **Step-by-Step Reasoning:** Processes user queries with systematic planning and action execution.
+- **ReAct:** Processes user queries with systematic planning and action execution.
 - **Custom Actions:** Define additional custom actions tailored to your use case.
+- **Memory:** Save the conversation to a JSON file.
+- **Language Detection:** Automatically detect the language of the user's query.
+- **No function calling:** Support models without function calling.
 
 ---
 
@@ -70,7 +73,8 @@ agent = NanoAgent(
 Use the `run()` method to process user queries. The agent will plan, execute, and respond based on the input.
 
 ```python
-agent.run("which is bigger: 3.11 or 3.8?")
+for chunk in agent.run("which is bigger: 3.11 or 3.8?"):
+    print(chunk, end='', flush=True)
 ```
 
 ### Custom Actions
@@ -83,27 +87,6 @@ def custom_action(input):
 ```
 
 Add the custom action to the `actions` list during initialization.
-
----
-
-### Debugging and Logs
-
-Set `debug=True` during initialization to enable detailed logs of interactions and action executions.
-
-```python
-agent = NanoAgent(api_key="your_key", base_url="url", model="gpt-4o-mini", max_tokens=1024, debug=True)
-```
-
-Logs will include user queries, assistant responses, chosen actions, and their reasons.
-
----
-
-## Example Workflow
-
-1. **User Query:** The user provides a query, e.g., *"Explain how photosynthesis works."*
-2. **Agent Response:** The assistant generates a detailed response, ending with an action from the defined list.
-3. **Action Execution:** The chosen action is executed, and the result is integrated into the workflow.
-4. **Final Output:** The agent outputs the final answer or continues the workflow if needed.
 
 ---
 
