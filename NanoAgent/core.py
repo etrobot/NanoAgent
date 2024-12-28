@@ -27,7 +27,6 @@ class NanoAgent:
 Your task:
 From these actions {self.actions}, convert the user's action choice into json format like:
 {{
-    "reason": "reason for choosing the action",
     "action": "actionName",
     "input": "actionInput"
 }}'''
@@ -44,7 +43,7 @@ From these actions {self.actions}, convert the user's action choice into json fo
                     response_format={ "type": "json_object" }
                 )
                 result = json.loads(response.choices[0].message.content)
-                if not isinstance(result, dict) or not all(k in result for k in ['action', 'reason', 'input']):
+                if not isinstance(result, dict) or not all(k in result for k in ['action','input']):
                     self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
                     continue
                 return result
@@ -93,7 +92,6 @@ From these actions {self.actions}, convert the user's action choice into json fo
             act = self.act_builder(answer)
             
             self.logger.log('action', f"\n{act['action']}({act['input']})")
-            self.logger.log('reason', f"\n{act['reason']}\n")
             
             # Use cl100k_base encoding for non-OpenAI models
             try:
