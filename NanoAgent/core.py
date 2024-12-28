@@ -75,10 +75,10 @@ From these actions {self.actions}, based on the user query, output the user's ne
     def save_msg(self, filename=None):
         """Save conversation messages to a JSON file"""
         if not filename:
-            # Generate filename using datetime and first 14 chars of last user query
-            last_query = next((msg['content'] for msg in reversed(self.msg) if msg['role'] == 'user'), '')[:14]
-            timestamp = datetime.now().strftime('%d%m%Y_%H%M')
-            filename = f"{timestamp}_{last_query}.json"
+            # Generate filename using datetime and first 14 chars of first user query
+            first_query = next((msg['content'] for msg in self.msg if msg['role'] == 'user'), '')[:14]
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M')
+            filename = f"{timestamp}_{first_query}.json"
         
         self.save_path = filename
         with open(filename, 'w', encoding='utf-8') as f:
