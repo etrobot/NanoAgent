@@ -10,7 +10,7 @@ class NanoAgent:
         self.actions_instructions = [action.__doc__ for action in actions if callable(action)]
         self.llm=openai.Client(api_key=api_key, base_url=base_url)
         self.model=model
-        self.sysprmt=f'you are a logical assistant and you solve the user request with planning and execution step by step,MUST end every anwser with an action from {self.actions}.'
+        self.sysprmt=f'you are a logical assistant and you solve the user request with planning and execution step by step,MUST end every anwser with an action from {self.actions} before final answer.'
         self.msg=[{"role": "system", "content": self.sysprmt}]
         self.max_tokens=max_tokens
         self.max_retries=retry
@@ -60,6 +60,7 @@ From these actions {self.actions}, convert the user's action choice into json fo
         self.msg.append({"role": "user", "content": query})
         retry=self.max_retries
         while retry>0:
+            self.logger.print('\n')
             answer=''
             try:
                 response=self.llm.chat.completions.create(
@@ -80,7 +81,6 @@ From these actions {self.actions}, convert the user's action choice into json fo
                 time.sleep(60)
                 continue
 
-            self.logger.print('\n')
             if self.msg[-1]==self.end_msg:
                 return answer
             
