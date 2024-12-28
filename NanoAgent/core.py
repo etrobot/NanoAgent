@@ -63,7 +63,7 @@ From these actions {self.actions}, based on the user query {self.user_query}, in
                         continue
                 if self.language is None and result['language'] is not None:
                     self.language = result['language']
-                    self.end_msg["content"] = "output the final result in language "+self.language
+                    self.end_msg["content"] = "base on the previous steps, output the final result in language "+self.language
                 return result
             except Exception as e:
                 retry-=1
