@@ -19,6 +19,11 @@ class NanoAgent:
         self.language = None
         self.end_msg={"role": "user", "content": "output the final result"}
         self.save_path = None
+        self.action_format = {
+            "action": "actionName",
+            "input": "actionInput",
+            "lang": "language the user uses"
+        }
 
     def act_builder(self,query:str)->dict:
         sysprmt = f'''Actions Intro:
@@ -27,12 +32,8 @@ class NanoAgent:
 - final_result: action is final_result, input is "".
 
 Your task:
-From these actions {self.actions}, figure out the user's next action from user query and output in json format :
-{{
-    "action": "actionName",
-    "input": "actionInput",
-    "lang": "language the user uses"
-}}'''
+From these actions {self.actions}, based on the user query, output the user's next action in json format :
+{str(self.action_format)}'''
         self.logger.log('sysprmt', sysprmt)
         retry=self.max_retries
         while retry>0:
@@ -52,7 +53,7 @@ From these actions {self.actions}, figure out the user's next action from user q
                     else:
                         self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
                         continue
-                    if not all(k in result for k in ['action','input','lang']):
+                    if not all(k in result for k in self.action_format.keys()):
                         self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
                         continue
                 if self.language is None and result['lang'] is not None:
