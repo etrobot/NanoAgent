@@ -43,11 +43,15 @@ From these actions {self.actions}, convert the user's action choice into json fo
                 ],
                     response_format={ "type": "json_object" }
                 )
-                return json.loads(response.choices[0].message.content)
+                result = json.loads(response.choices[0].message.content)
+                if not isinstance(result, dict) or not all(k in result for k in ['action', 'reason', 'input']):
+                    self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
+                    continue
+                return result
             except Exception as e:
                 retry-=1
                 self.logger.log('error', e)
-                time.sleep(60)
+                time.sleep(30)
                 continue
         
     def act_executor(self,actionName:str,actionInput:str):
