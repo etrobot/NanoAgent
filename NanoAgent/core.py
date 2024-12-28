@@ -25,7 +25,7 @@ class NanoAgent:
 - final_result: output the final result.
 
 Your task:
-From these actions {self.actions}, convert the user's action choice into json format like:
+From these actions {self.actions}, convert the user's next action into json format :
 {{
     "action": "actionName",
     "input": "actionInput"
@@ -43,9 +43,15 @@ From these actions {self.actions}, convert the user's action choice into json fo
                     response_format={ "type": "json_object" }
                 )
                 result = json.loads(response.choices[0].message.content)
-                if not isinstance(result, dict) or not all(k in result for k in ['action','input']):
-                    self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
-                    continue
+                if not isinstance(result, dict):
+                    if isinstance(result, list) and len(result)>0 and isinstance(result[0], dict):
+                        result = result[0]
+                    else:
+                        self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
+                        continue
+                    if not all(k in result for k in ['action','input']):
+                        self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
+                        continue
                 return result
             except Exception as e:
                 retry-=1
