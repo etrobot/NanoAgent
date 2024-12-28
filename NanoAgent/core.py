@@ -52,7 +52,7 @@ From these actions {self.actions}, figure out the user's next action from user q
                     else:
                         self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
                         continue
-                    if not all(k in result for k in ['action','input']):
+                    if not all(k in result for k in ['action','input','lang']):
                         self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
                         continue
                 if self.language is None and result['lang'] is not None:
