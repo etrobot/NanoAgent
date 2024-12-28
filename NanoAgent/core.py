@@ -68,7 +68,7 @@ From these actions {self.actions}, convert the user's action choice into json fo
                     messages=self.msg,
                     stream=True
                 )
-                self.logger.log('user', query)
+                self.logger.log('user', self.msg[-1]['content'])
                 self.logger.log('assistant', '', end='')
                 for chunk in response:
                     if chunk.choices[0].delta.content is not None:
@@ -87,9 +87,8 @@ From these actions {self.actions}, convert the user's action choice into json fo
             self.msg.append({"role": "assistant", "content": answer})
             act = self.act_builder(answer)
             
-            self.logger.log('action', f"{act['action']}({act['input']})")
-            self.logger.log('reason', act['reason'])
-            self.logger.print('\n')
+            self.logger.log('action', f"\n{act['action']}({act['input']})")
+            self.logger.log('reason', f"\n{act['reason']}\n")
             
             # Use cl100k_base encoding for non-OpenAI models
             try:
@@ -101,6 +100,5 @@ From these actions {self.actions}, convert the user's action choice into json fo
                 self.msg.append(self.end_msg)
             else:
                 next_prompt = self.act_executor(act['action'], act['input'])
-                self.logger.log('next_prompt', next_prompt)
-                self.logger.print('\n')
+                self.logger.log('next_prompt', f"\n{next_prompt}\n")
                 self.msg.append({"role": "user", "content": next_prompt})
