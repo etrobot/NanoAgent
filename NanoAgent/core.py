@@ -26,7 +26,7 @@ MUST END EVERY ANSWER WITH AN ACTION FROM {self.actions} UNTIL THE ANSWER IS THE
         self.action_format = {
             "action": "actionName",
             "input": "actionInput",
-            "lang": "language of the user query"
+            "language": "language of the user query"
         }
         self.user_query = None
 
@@ -61,8 +61,8 @@ From these actions {self.actions}, based on the user query {self.user_query}, in
                     if not all(k in result for k in self.action_format.keys()):
                         self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
                         continue
-                if self.language is None and result['lang'] is not None:
-                    self.language = result['lang']
+                if self.language is None and result['language'] is not None:
+                    self.language = result['language']
                     self.end_msg["content"] = "output the final result in language "+self.language
                 return result
             except Exception as e:
