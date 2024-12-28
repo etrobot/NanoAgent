@@ -10,19 +10,19 @@ class NanoAgent:
         self.actions_instructions = [action.__doc__ for action in actions if callable(action)]
         self.llm=openai.Client(api_key=api_key, base_url=base_url)
         self.model=model
-        self.sysprmt=f'you are a logical assistant, you can destructively analyze the user request including the purpose and the reasoning, then output step by step execution, MUST end every anwser with an action from {self.actions} until this answer is the final result.'
+        self.sysprmt=f'you are a logical assistant, you can destructively analyze the user request including the deep purpose and the reasoning, then output step by step execution, MUST end every anwser with an action from {self.actions} until this answer is the final result.'
         self.msg=[{"role": "system", "content": self.sysprmt}]
         self.max_tokens=max_tokens
         self.max_retries=retry
         self.debug = debug
         self.logger = DebugLogger(debug)
         self.language = None
-        self.end_msg={"role": "user", "content": "output the final result"}
+        self.end_msg={"role": "user", "content": "output the final result with proper format"}
         self.save_path = None
         self.action_format = {
             "action": "actionName",
             "input": "actionInput",
-            "lang": "language the user uses"
+            "lang": "language of the user query"
         }
 
     def act_builder(self,query:str)->dict:
