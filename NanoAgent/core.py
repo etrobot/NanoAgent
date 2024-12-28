@@ -10,7 +10,7 @@ class NanoAgent:
         self.actions_instructions = [action.__doc__ for action in actions if callable(action)]
         self.llm=openai.Client(api_key=api_key, base_url=base_url)
         self.model=model
-        self.sysprmt=f'you are a logical assistant, you can destructively analyze the user request including the deep purpose and the reasoning, then output step by step execution, MUST end every anwser with an action from {self.actions} until this answer is the final result.'
+        self.sysprmt=f'you are a logical assistant, you can destructively analyze the user request including the deep purpose and the reasoning, then output step by step execution, MUST end every anwser with an action from {self.actions} until the answer is the final result.'
         self.msg=[{"role": "system", "content": self.sysprmt}]
         self.max_tokens=max_tokens
         self.max_retries=retry
@@ -67,16 +67,14 @@ From these actions {self.actions}, based on the user query, output the user's ne
                 time.sleep(30)
                 continue
         
-    def act_executor(self,actionName:str,actionInput:str):
+    def act_exec(self,actionName:str,actionInput:str)->str:
         if actionName=='think_more':
             return f'Take a deep breath and think more about: {actionInput} in language {self.language}'
         else:
             return eval(actionName+'('+actionInput+')')
 
     def save_msg(self, filename=None):
-        """Save conversation messages to a JSON file"""
         if not filename:
-            # Generate filename using datetime and first 14 chars of first user query
             first_query = self.user_query[:14]
             timestamp = datetime.now().strftime('%Y%m%d_%H%M')
             filename = f"{timestamp}_{first_query}.json"
@@ -85,7 +83,7 @@ From these actions {self.actions}, based on the user query, output the user's ne
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(self.msg, f, ensure_ascii=False, indent=2)
 
-    def run(self, query):
+    def run(self, query:str):
         if query.endswith('.json'):
             with open(query, 'r', encoding='utf-8') as f:
                 self.msg = json.load(f)
@@ -126,14 +124,10 @@ From these actions {self.actions}, based on the user query, output the user's ne
                 return
             
             self.msg.append({"role": "assistant", "content": answer})
-            # Save after assistant message
             self.save_msg(self.save_path)
             
             act = self.act_builder(answer)
-            
             self.logger.log('action', f"\n{act['action']}({act['input']})")
-            
-            # Use cl100k_base encoding for non-OpenAI models
             try:
                 encoding = tiktoken.encoding_for_model(self.model)
             except KeyError:
@@ -142,7 +136,7 @@ From these actions {self.actions}, based on the user query, output the user's ne
             if act['action']=='final_result' or len(encoding.encode(self.msg[-1]['content'])) >= self.max_tokens:
                 self.msg.append(self.end_msg)
             else:
-                next_prompt = self.act_executor(act['action'], act['input'])
+                next_prompt = self.act_exec(act['action'], act['input'])
                 self.logger.log('next_prompt', f"\n{next_prompt}\n")
                 self.msg.append({"role": "user", "content": next_prompt})
             self.save_msg(self.save_path)
