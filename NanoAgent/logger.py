@@ -7,6 +7,7 @@ class DebugLogger:
             'action': '\033[95m',
             'reason': '\033[96m',
             'next_prompt': '\033[92m',
+            'error': '\033[91m',
             'reset': '\033[0m'
         }
 
@@ -16,6 +17,8 @@ class DebugLogger:
         if category in self.colors:
             color = self.colors[category]
             label = category.title() + ':'
+            if isinstance(message, Exception):
+                message = f"{type(message).__name__}: {str(message)}"
             print(f"{color}{label}\033[0m {message}", end=end, flush=flush)
 
     def print(self, message, end='', flush=True):
