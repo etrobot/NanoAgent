@@ -31,7 +31,6 @@ dependencies = [
 
 [tool.setuptools]
 package-dir = {""= "."}
-packages = ["find:"]
 
 [tool.setuptools.packages.find]
 where = ["."] 
