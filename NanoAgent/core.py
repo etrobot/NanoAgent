@@ -10,7 +10,7 @@ class NanoAgent:
         self.actions_instructions = [action.__doc__ for action in actions if callable(action)]
         self.llm=openai.Client(api_key=api_key, base_url=base_url)
         self.model=model
-        self.sysprmt=f'you are a logical analyzer, you are good at destructively reasoning the user request into the deep purpose and abstractive concepts, then output step by step execution for the user query, MUST end every anwser with an action from {self.actions} until the answer is the final result.'
+        self.sysprmt=f'you are a helpful assistant, your task is to destructively reason the user request into the deep purpose and abstractive concepts, then output step by step execution for the user query, MUST end every anwser with an action from {self.actions} until the answer is the final result.'
         self.msg=[{"role": "system", "content": self.sysprmt}]
         self.max_tokens=max_tokens
         self.max_retries=retry
