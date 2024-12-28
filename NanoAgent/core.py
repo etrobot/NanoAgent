@@ -90,11 +90,12 @@ From these actions {self.actions}, based on the user query, output the user's ne
             with open(query, 'r', encoding='utf-8') as f:
                 self.msg = json.load(f)
             self.save_path = query
+            self.user_query = next((msg['content'] for msg in self.msg if msg['role'] == 'user'), '')
         else:
             self.msg.append({"role": "user", "content": query})
+            self.user_query = query
             self.save_msg(self.save_path)
 
-        self.user_query =next((msg['content'] for msg in self.msg if msg['role'] == 'user'), '')
         retry = self.max_retries
         while retry > 0:
             self.logger.print('\n')

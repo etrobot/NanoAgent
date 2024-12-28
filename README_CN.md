@@ -69,10 +69,15 @@ agent = NanoAgent(
 
 ### 运行Agent
 
-使用 `run()` 方法处理用户查询，Agent会进行规划、执行和响应。
+使用 `run()` 方法处理用户查询或读取消息历史json文件，Agent会进行规划、执行和响应。
 
 ```python
 for chunk in agent.run("3.11和3.8哪个大？"):
+    print(chunk, end='', flush=True)
+```
+或
+```python
+for chunk in agent.run("history.json"):
     print(chunk, end='', flush=True)
 ```
 

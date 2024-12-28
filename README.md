@@ -70,10 +70,15 @@ agent = NanoAgent(
 
 ### Running the Agent
 
-Use the `run()` method to process user queries. The agent will plan, execute, and respond based on the input.
+Use the `run()` method to process user queries or read message history from a JSON file. The agent will plan, execute, and respond based on the input.
 
 ```python
 for chunk in agent.run("which is bigger: 3.11 or 3.8?"):
+    print(chunk, end='', flush=True)
+```
+or
+```python
+for chunk in agent.run("history.json"):
     print(chunk, end='', flush=True)
 ```
 
