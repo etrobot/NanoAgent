@@ -1,5 +1,7 @@
 # NanoAgent
 
+[中文](README_CN.md)
+
 NanoAgent is a Python-based framework for building logical assistant agents capable of solving user requests through step-by-step planning and execution. It integrates with the OpenAI API for natural language processing and provides structured action-based workflows to deliver intelligent responses.
 
 ```mermaid
@@ -12,8 +14,6 @@ graph TD
     E -- No --> G[Actions]
     G --> B
 ```
-
-
 ---
 
 ## Features
