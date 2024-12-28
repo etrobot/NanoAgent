@@ -47,7 +47,7 @@ From these actions {self.actions}, convert the user's action choice into json fo
 
     def run(self,query):
         self.msg.append({"role": "user", "content": query})
-        while self.msg[-2]!=self.end_msg:
+        while True:
             answer=''
             response=self.llm.chat.completions.create(
                 model=self.model,
@@ -66,6 +66,9 @@ From these actions {self.actions}, convert the user's action choice into json fo
             
             self.msg.append({"role": "assistant", "content": answer})
             act = self.act_builder(answer)
+            if self.msg[-2]==self.end_msg:
+                return answer
+            
             act = json.loads(act)
             
             self.logger.print('\n')
