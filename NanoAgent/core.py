@@ -16,13 +16,13 @@ class NanoAgent:
         self.max_retries=retry
         self.debug = debug
         self.logger = DebugLogger(debug)
-        self.end_msg={"role": "user", "content": "output the final result in user's language"}
+        self.end_msg={"role": "user", "content": "output the final result in language of the user's initial request"}
 
     def act_builder(self,query:str)->dict:
         sysprmt = f'''Actions Intro:
 {'\n- '.join([f'- {action}' for action in self.actions_instructions])}
 - think_more: input the user's request for more thinking.
-- final_result: output the final result in user's language, no input needed.
+- final_result: output the final result.
 
 Your task:
 From these actions {self.actions}, convert the user's action choice into json format like:
