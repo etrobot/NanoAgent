@@ -52,7 +52,7 @@ From these actions {self.actions}, convert the user's action choice into json fo
         
     def act_executor(self,actionName:str,actionInput:str):
         if actionName=='think_more':
-            return 'Analyze: '+actionInput
+            return 'Take a deep breath and think more about: '+actionInput
         else:
             return eval(actionName+'('+actionInput+')')
 
@@ -75,6 +75,7 @@ From these actions {self.actions}, convert the user's action choice into json fo
                         content = chunk.choices[0].delta.content
                         answer += content
                         print(content, end='', flush=True)
+                self.logger.print('\n')
             except Exception as e:
                 retry-=1
                 self.logger.log('error', e)
