@@ -6,23 +6,23 @@ import time
 
 class NanoAgent:
     def __init__(self,api_key:str,base_url:str,model:str,max_tokens:int,actions=[],debug=False,retry=20):                
-        self.actions = ['think_more','end_answer'] + [action.__name__ for action in actions if callable(action)]
+        self.actions = ['think_more','final_result'] + [action.__name__ for action in actions if callable(action)]
         self.actions_instructions = [action.__doc__ for action in actions if callable(action)]
         self.llm=openai.Client(api_key=api_key, base_url=base_url)
         self.model=model
-        self.sysprmt=f'you are a logical assistant and you complete the user request with deconstruction and step by step execution, MUST end every anwser with an action from {self.actions} until this answer is the final answer.'
+        self.sysprmt=f'you are a logical assistant and you complete the user request with deconstruction and step by step execution, MUST end every anwser with an action from {self.actions} until this answer is the final result.'
         self.msg=[{"role": "system", "content": self.sysprmt}]
         self.max_tokens=max_tokens
         self.max_retries=retry
         self.debug = debug
         self.logger = DebugLogger(debug)
-        self.end_msg={"role": "user", "content": "output the final answer"}
+        self.end_msg={"role": "user", "content": "output the final result in user's language"}
 
     def act_builder(self,query:str)->dict:
         sysprmt = f'''Actions Intro:
 {'\n- '.join([f'- {action}' for action in self.actions_instructions])}
 - think_more: input the user's request for more thinking.
-- end_answer: output the final answer,no input needed.
+- final_result: output the final result in user's language, no input needed.
 
 Your task:
 From these actions {self.actions}, convert the user's action choice into json format like:
@@ -99,7 +99,7 @@ From these actions {self.actions}, convert the user's action choice into json fo
             except KeyError:
                 encoding = tiktoken.get_encoding("cl100k_base")
             
-            if act['action']=='end_answer' or len(encoding.encode(self.msg[-1]['content'])) >= self.max_tokens:
+            if act['action']=='final_result' or len(encoding.encode(self.msg[-1]['content'])) >= self.max_tokens:
                 self.msg.append(self.end_msg)
             else:
                 next_prompt = self.act_executor(act['action'], act['input'])
