@@ -70,7 +70,7 @@ agent = NanoAgent(
 Use the `run()` method to process user queries. The agent will plan, execute, and respond based on the input.
 
 ```python
-agent.run("What is the capital of France?")
+agent.run("which is bigger: 3.11 or 3.8?")
 ```
 
 ### Custom Actions

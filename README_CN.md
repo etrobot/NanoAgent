@@ -69,7 +69,7 @@ agent = NanoAgent(
 使用 `run()` 方法处理用户查询，Agent会进行规划、执行和响应。
 
 ```python
-agent.run("法国的首都是哪里？")
+agent.run("3.11和3.8哪个大？")
 ```
 
 ---
