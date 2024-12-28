@@ -16,7 +16,8 @@ class NanoAgent:
         self.max_retries=retry
         self.debug = debug
         self.logger = DebugLogger(debug)
-        self.end_msg={"role": "user", "content": "output the final result in language of the user's initial request"}
+        self.language = None
+        self.end_msg={"role": "user", "content": "output the final result"}
 
     def act_builder(self,query:str)->dict:
         sysprmt = f'''Actions Intro:
@@ -28,7 +29,8 @@ Your task:
 From these actions {self.actions}, convert the user's next action into json format :
 {{
     "action": "actionName",
-    "input": "actionInput"
+    "input": "actionInput",
+    "lang": "language of the user's initial request"
 }}'''
         self.logger.log('sysprmt', sysprmt)
         retry=self.max_retries
@@ -52,6 +54,9 @@ From these actions {self.actions}, convert the user's next action into json form
                     if not all(k in result for k in ['action','input']):
                         self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
                         continue
+                if self.language is None and result['lang'] is not None:
+                    self.language = result['lang']
+                    self.end_msg["content"] = "output the final result in language "+self.language
                 return result
             except Exception as e:
                 retry-=1
