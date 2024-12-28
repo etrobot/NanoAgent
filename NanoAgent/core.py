@@ -23,7 +23,7 @@ class NanoAgent:
     def act_builder(self,query:str)->dict:
         sysprmt = f'''Actions Intro:
 {'\n- '.join([f'- {action}' for action in self.actions_instructions])}
-- think_more: input the user's request for more thinking.
+- think_more: take a deep breath and think more about the user query.
 - final_result: output the final result.
 
 Your task:
@@ -31,7 +31,7 @@ From these actions {self.actions}, figure out the user's next action from user q
 {{
     "action": "actionName",
     "input": "actionInput",
-    "lang": "language of the user query"
+    "lang": "language the user uses"
 }}'''
         self.logger.log('sysprmt', sysprmt)
         retry=self.max_retries
@@ -67,7 +67,7 @@ From these actions {self.actions}, figure out the user's next action from user q
         
     def act_executor(self,actionName:str,actionInput:str):
         if actionName=='think_more':
-            return 'Take a deep breath and think more about: '+actionInput
+            return f'Take a deep breath and think more about: {actionInput} in language {self.language}'
         else:
             return eval(actionName+'('+actionInput+')')
 
