@@ -24,6 +24,7 @@ class NanoAgent:
             "input": "actionInput",
             "lang": "language of the user query"
         }
+        self.user_query = None
 
     def act_builder(self,query:str)->dict:
         sysprmt = f'''Actions Intro:
