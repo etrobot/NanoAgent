@@ -28,7 +28,7 @@ class NanoAgent:
     def act_builder(self,query:str)->dict:
         sysprmt = f'''Actions Intro:
 {'\n- '.join([f'- {action}' for action in self.actions_instructions])}
-- think_more: take a deep breath and think more about the user query.
+- think_more: take a deep breath and think more about the user query: {self.user_query}.
 - final_result: action is final_result, input is "".
 
 Your task:
@@ -76,7 +76,7 @@ From these actions {self.actions}, based on the user query, output the user's ne
         """Save conversation messages to a JSON file"""
         if not filename:
             # Generate filename using datetime and first 14 chars of first user query
-            first_query = next((msg['content'] for msg in self.msg if msg['role'] == 'user'), '')[:14]
+            first_query = self.user_query[:14]
             timestamp = datetime.now().strftime('%Y%m%d_%H%M')
             filename = f"{timestamp}_{first_query}.json"
         
@@ -93,6 +93,7 @@ From these actions {self.actions}, based on the user query, output the user's ne
             self.msg.append({"role": "user", "content": query})
             self.save_msg(self.save_path)
 
+        self.user_query =next((msg['content'] for msg in self.msg if msg['role'] == 'user'), '')
         retry = self.max_retries
         while retry > 0:
             self.logger.print('\n')
