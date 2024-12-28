@@ -28,10 +28,11 @@ class DebugLogger:
         print(message, end=end, flush=flush)
 
 class NanoAgent:
-    def __init__(self,api_key:str,base_url:str,model:str,max_tokens:int,actions=[],debug=False):
+    def __init__(self,api_key:str,base_url:str,model:str,max_tokens:int,actions=[],debug=False):                
+        self.actions = ['think_more','end_answer'] + [action.__name__ for action in actions if callable(action)]
+        self.actions_instructions = [action.__doc__ for action in actions if callable(action)]
         self.llm=openai.Client(api_key=api_key, base_url=base_url)
         self.model=model
-        self.actions = ['think_more','end_answer']+actions
         self.sysprmt=f'you are a logical assistant and you solve the user request with planning and execution step by step,MUST end every anwser with an action from {self.actions}.'
         self.msg=[{"role": "system", "content": self.sysprmt}]
         self.max_tokens=max_tokens
@@ -40,7 +41,13 @@ class NanoAgent:
         self.end_msg={"role": "user", "content": "output the final answer"}
 
     def act_builder(self,query):
-        sysprmt = f'''From these actions {self.actions}, convert the user's action choice into json format like:
+        sysprmt = f'''Actions Intro:
+{'\n- '.join([f'- {action}' for action in self.actions_instructions])}
+- think_more: input the user's request for more thinking.
+- end_answer: output the final answer,no input needed.
+
+Your task:
+From these actions {self.actions}, convert the user's action choice into json format like:
 {{
     "reason": "reason for choosing the action",
     "action": "actionName",
