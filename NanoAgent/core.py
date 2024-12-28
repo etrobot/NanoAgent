@@ -24,7 +24,7 @@ class NanoAgent:
         sysprmt = f'''Actions Intro:
 {'\n- '.join([f'- {action}' for action in self.actions_instructions])}
 - think_more: take a deep breath and think more about the user query.
-- final_result: output the final result.
+- final_result: action is final_result, input is "".
 
 Your task:
 From these actions {self.actions}, figure out the user's next action from user query and output in json format :
