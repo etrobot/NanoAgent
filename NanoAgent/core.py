@@ -29,6 +29,7 @@ From these actions {self.actions}, convert the user's action choice into json fo
     "action": "actionName",
     "input": "actionInput"
 }}'''
+        self.logger.log('sysprmt', sysprmt)
         response = self.llm.chat.completions.create(
             model=self.model,
             messages=[
@@ -64,6 +65,7 @@ From these actions {self.actions}, convert the user's action choice into json fo
                     answer += content
                     print(content, end='', flush=True)
 
+            self.logger.print('\n')
             if self.msg[-1]==self.end_msg:
                 return answer
             
@@ -73,7 +75,6 @@ From these actions {self.actions}, convert the user's action choice into json fo
             
             act = json.loads(act)
             
-            self.logger.print('\n')
             self.logger.log('action', f"{act['action']}({act['input']})")
             self.logger.log('reason', act['reason'])
             self.logger.print('\n')
