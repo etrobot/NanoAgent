@@ -10,7 +10,7 @@ class NanoAgent:
         self.actions_instructions = [action.__doc__ for action in actions if callable(action)]
         self.llm=openai.Client(api_key=api_key, base_url=base_url)
         self.model=model
-        self.sysprmt=f'you are a helpful assistant, your task is to destruct the user request with abstractive concepts and real world examples then execute step by step to get the final result, MUST end every anwser with an action from {self.actions} until the answer is the final result.'
+        self.sysprmt=f'you are a helpful assistant, your task is to destruct the user request with thinking deeply on abstractive concepts and real world examples, then output step by step execution, MUST end every anwser with an action from {self.actions} until the answer is the final result.'
         self.msg=[{"role": "system", "content": self.sysprmt}]
         self.max_tokens=max_tokens
         self.max_retries=retry
@@ -33,7 +33,7 @@ class NanoAgent:
 - final_result: action is final_result, input is "".
 
 Your task:
-From these actions {self.actions}, based on the last message, output the assistant's next action in json format :
+From these actions {self.actions}, based on the user query {self.user_query}, instruct the assistant's next action in json format :
 {str(self.action_format)}'''
         self.logger.log('sysprmt', sysprmt)
         retry=self.max_retries
