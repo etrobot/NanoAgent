@@ -14,7 +14,7 @@ class NanoAgent:
 For each step, describes what you're doing in that step, 
 for example: analyze the user request including the deep purpose and famous examples.
 Decide if you need another step or if you're ready to give the final result,
-MUST END EVERY ANSWER WITH AN ACTION FROM {self.actions} UNTIL THE ANSWER IS THE FINAL RESULT.'''
+MUST END EVERY STEP WITH USER CONFIRMATION UNTIL THE ANSWER IS THE FINAL RESULT.'''
         self.msg=[{"role": "system", "content": self.sysprmt}]
         self.max_tokens=max_tokens
         self.max_retries=retry
@@ -37,7 +37,7 @@ MUST END EVERY ANSWER WITH AN ACTION FROM {self.actions} UNTIL THE ANSWER IS THE
 - final_result: action is final_result, input is "".
 
 Your task:
-From these actions {self.actions}, based on the user query {self.user_query}, instruct the assistant's next action in json format :
+Based on the user query {self.user_query}, pick next action from {self.actions} for the assistant, output in json format :
 {str(self.action_format)}'''
         self.logger.log('sysprmt', sysprmt)
         retry=self.max_retries
