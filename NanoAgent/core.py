@@ -82,7 +82,7 @@ Based on the user query, pick next action from actions above for the assistant''
         retry=self.max_retries
         while retry>0:
             try:
-                result = llm_gen_json(prompt,self.action_format)
+                result = llm_gen_json(self.llm,self.model,prompt,self.action_format,debug=self.debug,max_retries=self.max_retries)
                 return result
             except Exception as e:
                 retry-=1
