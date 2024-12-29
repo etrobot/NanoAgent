@@ -43,7 +43,7 @@ class NanoAgent:
         }
         self.llm=openai.Client(api_key=api_key, base_url=base_url)
         self.model=model
-        self.sysprmt=f"You are an helpful assistant that performs step by step deconstructive reasoning.\
+        self.sysprmt=f"You are an helpful assistant that can analyze the initial user query and performs step by step deconstructive reasoning.\
 describes the next step, you can ask user to use tools like {', '.join(self.action_functions.keys())} to help you.\
 use the language of the user query\
 MUST END EVERY STEP WITH ASKING THE USER TO CONFIRM THE STEP UNTIL THE USER REQUESTS THE FINAL RESULT."
