@@ -31,7 +31,7 @@ MUST END EVERY STEP WITH ASKING THE USER TO CONFIRM THE STEP UNTIL THE USER REQU
     def get_lang(self,query:str):
         lang = self.llm.chat.completions.create(
             model=self.model,
-            messages=[{"role": "system", "content": "output the language of the user query in json format{{'lang': 'language'}}"},query],
+            messages=[{"role": "system", "content": "output the language of the user query in json format{{'lang': 'language'}}"},{"role": "user", "content": query}],
             response_format={ "type": "json_object" }
         )
         lang = json.loads(lang.choices[0].message.content)['lang']
