@@ -11,7 +11,6 @@ class NanoAgent:
         self.action_format = {
             "action": "actionName",
             "input": "actionInput",
-            "lang": "language of the user query"
         }
         self.llm=openai.Client(api_key=api_key, base_url=base_url)
         self.model=model
@@ -28,6 +27,15 @@ MUST END EVERY STEP WITH ASKING THE USER TO CONFIRM THE STEP UNTIL THE USER REQU
         self.end_msg={"role": "user", "content": "output the final result with proper format"}
         self.save_path = None
         self.user_query = None
+
+    def get_lang(self,query:str):
+        lang = self.llm.chat.completions.create(
+            model=self.model,
+            messages=[{"role": "system", "content": "output the language of the user query in json format{{'lang': 'language'}}"},query],
+            response_format={ "type": "json_object" }
+        )
+        lang = json.loads(lang.choices[0].message.content)['lang']
+        return lang
 
     def act_builder(self)->dict:
         prompt = f'''<actions>
@@ -62,10 +70,7 @@ Based on the user query, pick next action from actions above for the assistant, 
                     if not all(k in result for k in self.action_format):
                         self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
                         continue
-                if self.language is None and result['lang'] is not None:
-                    self.language = result['lang']
-                    self.end_msg["content"] = "base on the previous steps, output the final result in language "+self.language
-                return result
+                    return result
             except Exception as e:
                 retry-=1
                 self.logger.log('error', e)
@@ -100,7 +105,7 @@ Based on the user query, pick next action from actions above for the assistant, 
             self.msg.append({"role": "user", "content": query})
             self.user_query = query
             self.save_msg(self.save_path)
-
+        self.language = self.get_lang(self.user_query)
         retry = self.max_retries
         while retry > 0:
             self.logger.print('\n')
