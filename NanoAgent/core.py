@@ -11,12 +11,12 @@ class NanoAgent:
         self.action_format = {
             "action": "actionName",
             "input": "actionInput",
-            "language": "language of the user query"
+            "lang": "language of the user query"
         }
         self.llm=openai.Client(api_key=api_key, base_url=base_url)
         self.model=model
         self.sysprmt=f'''You are an helpful assistant that performs step by step deconstructive reasoning.
-For each step, describes what you're doing in that step, you can ask user to use tools like {', '.join(self.action_functions.keys())} to help you.
+describes the next step, you can ask user to use tools like {', '.join(self.action_functions.keys())} to help you.
 Decide if you need another step or if you're ready to give the final result,
 MUST END EVERY STEP WITH USER CONFIRMATION UNTIL THE ANSWER IS THE FINAL RESULT.'''
         self.msg=[{"role": "system", "content": self.sysprmt}]
@@ -32,11 +32,11 @@ MUST END EVERY STEP WITH USER CONFIRMATION UNTIL THE ANSWER IS THE FINAL RESULT.
     def act_builder(self,query:str)->dict:
         sysprmt = f'''Actions Intro:
 {'\n- '.join([f'- {action}' for action in self.action_instructions])}
-- think_more: take a deep breath and think more about the user query: {self.user_query}.
+- think_more: push user to think different ways for the target,input is the suggestion.
 - final_result: action is final_result, input is "".
 
 Your task:
-Based on the user query {query}, pick next action from\
+Based on the user query {self.user_query+'\n'+query}, pick next action from\
     {['think_more','final_result'] + list(self.action_functions.keys())} \
     for the user, output in json format :
     {str(self.action_format)}'''
