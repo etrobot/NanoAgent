@@ -76,7 +76,7 @@ Based on the user query, pick next action from\
         
     def act_exec(self,actionName:str,actionInput:str)->str:
         if actionName=='think_more':
-            return f'Take a deep breath and think more about: {actionInput} in language {self.language}'
+            return f'Take a deep breath and think more about: {actionInput} \n output in language {self.language}'
         elif actionName=='final_result':
             return ''
         else:
