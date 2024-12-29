@@ -30,25 +30,27 @@ MUST END EVERY STEP WITH USER CONFIRMATION UNTIL THE ANSWER IS THE FINAL RESULT.
         self.user_query = None
 
     def act_builder(self,answer:str)->dict:
-        sysprmt = f'''Actions Intro:
+        prompt = f'''<actions_intro>
 {'\n- '.join([f'- {action}' for action in self.action_instructions])}
 - think_more: push user to think different ways for the target,input is the suggestion.
 - final_result: action is final_result, input is "".
+</actions_intro>
+<user_query>
+{self.user_query+'\n'+answer}
+</user_query>
 
 Your task:
 Based on the user query, pick next action from\
     {['think_more','final_result'] + list(self.action_functions.keys())} \
     for the user, output in json format :
     {str(self.action_format)}'''
-        self.logger.log('sysprmt', sysprmt)
         retry=self.max_retries
         while retry>0:
             try:
                 response = self.llm.chat.completions.create(
                     model=self.model,
                     messages=[
-                    {"role": "system", "content": sysprmt},
-                    {"role": "user", "content": self.user_query+'\n'+answer}
+                    {"role": "user", "content": prompt}
                 ],
                     response_format={ "type": "json_object" }
                 )
