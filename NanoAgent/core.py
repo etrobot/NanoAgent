@@ -29,20 +29,18 @@ MUST END EVERY STEP WITH ASKING THE USER TO CONFIRM THE STEP UNTIL THE USER REQU
         self.save_path = None
         self.user_query = None
 
-    def act_builder(self,answer:str)->dict:
-        prompt = f'''<actions_intro>
+    def act_builder(self)->dict:
+        prompt = f'''<actions>
 {'\n- '.join([f'- {action}' for action in self.action_instructions])}
-- think_more: push user to think different ways for the target,input is the suggestion.
-- final_result: action is final_result, input is "".
-</actions_intro>
+- think_more: push assistant to think different ways for the target,input is the suggestion.
+- final_result: decide if the context is enough to output the final result.
+</actions>
 <user_query>
 {'\n'.join([f'{msg["role"]}: {msg["content"]}' for msg in self.msg])}
 </user_query>
 
 Your task:
-Based on the user query, pick next action from\
-    {['think_more','final_result'] + list(self.action_functions.keys())} \
-    for the user, output in json format :
+Based on the user query, pick next action from actions above for the assistant, output in json format :
     {str(self.action_format)}'''
         retry=self.max_retries
         while retry>0:
