@@ -7,13 +7,16 @@ import tiktoken
 class NanoAgent:
     def __init__(self,api_key:str,base_url:str,model:str,max_tokens:int,actions=[],debug=False,retry=20):                
         self.action_functions = {action.__name__: action for action in actions if callable(action)}
-        self.actions_instructions = [action.__doc__ for action in self.action_functions.values()]
-        self.actions = ['think_more','final_result'] + list(self.action_functions.keys())
+        self.action_instructions = [action.__doc__ for action in self.action_functions.values()]
+        self.action_format = {
+            "action": "actionName",
+            "input": "actionInput",
+            "language": "language of the user query"
+        }
         self.llm=openai.Client(api_key=api_key, base_url=base_url)
         self.model=model
         self.sysprmt=f'''You are an helpful assistant that performs step by step deconstructive reasoning.
-For each step, describes what you're doing in that step, 
-for example: analyze the user request including the deep purpose and famous examples.
+For each step, describes what you're doing in that step, you can ask user to use tools like {', '.join(self.action_functions.keys())} to help you.
 Decide if you need another step or if you're ready to give the final result,
 MUST END EVERY STEP WITH USER CONFIRMATION UNTIL THE ANSWER IS THE FINAL RESULT.'''
         self.msg=[{"role": "system", "content": self.sysprmt}]
@@ -24,22 +27,19 @@ MUST END EVERY STEP WITH USER CONFIRMATION UNTIL THE ANSWER IS THE FINAL RESULT.
         self.language = None
         self.end_msg={"role": "user", "content": "output the final result with proper format"}
         self.save_path = None
-        self.action_format = {
-            "action": "actionName",
-            "input": "actionInput",
-            "language": "language of the user query"
-        }
         self.user_query = None
 
     def act_builder(self,query:str)->dict:
         sysprmt = f'''Actions Intro:
-{'\n- '.join([f'- {action}' for action in self.actions_instructions])}
+{'\n- '.join([f'- {action}' for action in self.action_instructions])}
 - think_more: take a deep breath and think more about the user query: {self.user_query}.
 - final_result: action is final_result, input is "".
 
 Your task:
-Based on the user query {self.user_query}, pick next action from {self.actions} for the assistant, output in json format :
-{str(self.action_format)}'''
+Based on the user query {self.user_query}, pick next action from\
+    {['think_more','final_result'] + list(self.action_functions.keys())} \
+    for the assistant, output in json format :
+    {str(self.action_format)}'''
         self.logger.log('sysprmt', sysprmt)
         retry=self.max_retries
         while retry>0:
