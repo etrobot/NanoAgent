@@ -53,7 +53,7 @@ MUST END EVERY STEP WITH ASKING THE USER TO CONFIRM THE STEP UNTIL THE USER REQU
         self.debug = debug
         self.logger = DebugLogger(debug)
         self.language = None
-        self.end_msg={"role": "user", "content": f"review the final result and output in the proper format"}
+        self.end_msg={"role": "user", "content": f"review the conversation and output final result in the proper format"}
         self.save_path = None
         self.user_query = None
 
