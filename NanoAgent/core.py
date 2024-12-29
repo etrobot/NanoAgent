@@ -83,7 +83,7 @@ Based on the user query, pick next action from actions above for the assistant''
         while retry>0:
             try:
                 result = llm_gen_json(self.llm,self.model,prompt,self.action_format,debug=self.debug,max_retries=self.max_retries)
-                if result['action'] not in self.action_functions:
+                if result['action'] not in list(self.action_functions.keys())+['final_result','think_more']:
                     self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
                     time.sleep(5)
                     continue
