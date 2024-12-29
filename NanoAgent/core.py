@@ -53,7 +53,7 @@ MUST END EVERY STEP WITH ASKING THE USER TO CONFIRM THE STEP UNTIL THE USER REQU
         self.debug = debug
         self.logger = DebugLogger(debug)
         self.language = None
-        self.end_msg={"role": "user", "content": f"output the final result in the format that the user requests at the beginning of the conversation, in language {self.language}"}
+        self.end_msg={"role": "user", "content": f"review the final result and output in the proper format"}
         self.save_path = None
         self.user_query = None
 
@@ -161,7 +161,7 @@ Based on the user query, pick next action from actions above for the assistant''
                 encoding = tiktoken.get_encoding("cl100k_base")
             
             if act['action']=='final_result' or len(encoding.encode(self.msg[-1]['content'])) >= self.max_tokens:
-                self.msg.append(self.end_msg)
+                self.msg.append(self.end_msg+'\noutput in language '+self.language)
             else:
                 next_prompt = self.act_exec(act['action'], act['input'])
                 self.logger.log('next_prompt', f"\n{next_prompt}\n")
