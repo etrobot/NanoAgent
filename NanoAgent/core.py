@@ -18,7 +18,7 @@ class NanoAgent:
         self.sysprmt=f"You are an helpful assistant that performs step by step deconstructive reasoning.\
 describes the next step, you can ask user to use tools like {', '.join(self.action_functions.keys())} to help you.\
 use the language of the user query\
-MUST END EVERY STEP WITH ASKING USER CONFIRMATION UNTIL THE ANSWER IS THE FINAL RESULT."
+MUST END EVERY STEP WITH ASKING THE USER TO CONFIRM THE STEP UNTIL THE USER REQUESTS THE FINAL RESULT."
         self.msg=[{"role": "system", "content": self.sysprmt}]
         self.max_tokens=max_tokens
         self.max_retries=retry
