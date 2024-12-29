@@ -161,7 +161,8 @@ Based on the user query, pick next action from actions above for the assistant''
                 encoding = tiktoken.get_encoding("cl100k_base")
             
             if act['action']=='final_result' or len(encoding.encode(self.msg[-1]['content'])) >= self.max_tokens:
-                self.msg.append(self.end_msg+'\noutput in language '+self.language)
+                self.end_msg['content']=self.end_msg['content']+'\noutput in language '+self.language
+                self.msg.append(self.end_msg)
             else:
                 next_prompt = self.act_exec(act['action'], act['input'])
                 self.logger.log('next_prompt', f"\n{next_prompt}\n")
