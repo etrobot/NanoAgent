@@ -36,9 +36,9 @@ MUST END EVERY STEP WITH USER CONFIRMATION UNTIL THE ANSWER IS THE FINAL RESULT.
 - final_result: action is final_result, input is "".
 
 Your task:
-Based on the user query {self.user_query}, pick next action from\
+Based on the user query {self.msg[-1]['content']}, pick next action from\
     {['think_more','final_result'] + list(self.action_functions.keys())} \
-    for the assistant, output in json format :
+    for the user, output in json format :
     {str(self.action_format)}'''
         self.logger.log('sysprmt', sysprmt)
         retry=self.max_retries
