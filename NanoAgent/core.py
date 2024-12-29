@@ -15,10 +15,10 @@ class NanoAgent:
         }
         self.llm=openai.Client(api_key=api_key, base_url=base_url)
         self.model=model
-        self.sysprmt=f'''You are an helpful assistant that performs step by step deconstructive reasoning.
-describes the next step, you can ask user to use tools like {', '.join(self.action_functions.keys())} to help you.
-Decide if you need another step or if you're ready to give the final result,
-MUST END EVERY STEP WITH USER CONFIRMATION UNTIL THE ANSWER IS THE FINAL RESULT.'''
+        self.sysprmt=f"You are an helpful assistant that performs step by step deconstructive reasoning.\
+describes the next step, you can ask user to use tools like {', '.join(self.action_functions.keys())} to help you.\
+Decide if you need another step or if you're ready to give the final result,\
+MUST END EVERY STEP WITH USER CONFIRMATION UNTIL THE ANSWER IS THE FINAL RESULT."
         self.msg=[{"role": "system", "content": self.sysprmt}]
         self.max_tokens=max_tokens
         self.max_retries=retry
@@ -59,11 +59,11 @@ Based on the user query {self.user_query+'\n'+query}, pick next action from\
                     else:
                         self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
                         continue
-                    if not all(k in result for k in self.action_format.keys()):
+                    if not all(k in result for k in self.action_format):
                         self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
                         continue
-                if self.language is None and result['language'] is not None:
-                    self.language = result['language']
+                if self.language is None and result['lang'] is not None:
+                    self.language = result['lang']
                     self.end_msg["content"] = "base on the previous steps, output the final result in language "+self.language
                 return result
             except Exception as e:
