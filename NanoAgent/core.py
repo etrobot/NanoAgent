@@ -6,8 +6,9 @@ import tiktoken
 
 class NanoAgent:
     def __init__(self,api_key:str,base_url:str,model:str,max_tokens:int,actions=[],debug=False,retry=20):                
-        self.actions = ['think_more','final_result'] + [action.__name__ for action in actions if callable(action)]
-        self.actions_instructions = [action.__doc__ for action in actions if callable(action)]
+        self.action_functions = {action.__name__: action for action in actions if callable(action)}
+        self.actions_instructions = [action.__doc__ for action in self.action_functions.values()]
+        self.actions = ['think_more','final_result'] + list(self.action_functions.keys())
         self.llm=openai.Client(api_key=api_key, base_url=base_url)
         self.model=model
         self.sysprmt=f'''You are an helpful assistant that performs step by step deconstructive reasoning.
@@ -74,8 +75,10 @@ Based on the user query {self.user_query}, pick next action from {self.actions} 
     def act_exec(self,actionName:str,actionInput:str)->str:
         if actionName=='think_more':
             return f'Take a deep breath and think more about: {actionInput} in language {self.language}'
+        elif actionName=='final_result':
+            return ''
         else:
-            return eval(actionName+'('+actionInput+')')
+            return self.action_functions[actionName](actionInput)
 
     def save_msg(self, filename=None):
         if not filename:
