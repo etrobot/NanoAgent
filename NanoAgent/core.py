@@ -4,6 +4,35 @@ from datetime import datetime
 import openai
 import tiktoken
 
+def llm_gen_json(llm:openai.Client,model:str,query:str,format:dict,debug=False,max_retries:int=20)->dict:
+    logger=DebugLogger(debug=debug)
+    prompt= f"\noutput in json format :\n{str(format)}\n"
+    retry=max_retries
+    while retry>0:
+        try:
+            llm_response = llm.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": query+prompt}],
+                response_format={ "type": "json_object" }
+            )
+            result=json.loads(llm_response.choices[0].message.content)
+            if not isinstance(result, dict):
+                if isinstance(result, list) and len(result)>0 and isinstance(result[0], dict):
+                    result = result[0]
+                else:
+                    logger.log('error', f"Invalid action received, will retry\n{result}\n")
+                    continue
+                if not all(k in result for k in format):
+                    logger.log('error', f"Invalid action received, will retry\n{result}\n")
+                    continue
+            return result
+        except Exception as e:
+            logger.log('error', e)
+            time.sleep((max_retries-retry)*10)
+            retry-=1
+            continue
+    return None
+
 class NanoAgent:
     def __init__(self,api_key:str,base_url:str,model:str,max_tokens:int,actions=[],debug=False,retry=20):                
         self.action_functions = {action.__name__: action for action in actions if callable(action)}
@@ -28,36 +57,15 @@ MUST END EVERY STEP WITH ASKING THE USER TO CONFIRM THE STEP UNTIL THE USER REQU
         self.save_path = None
         self.user_query = None
 
-    def get_json(self,query:str,format:dict):
-        prompt= f"\noutput in json format :\n{str(format)}\n"
-        retry=self.max_retries
-        while retry>0:
-            try:
-                llm_response = self.llm.chat.completions.create(
-                    model=self.model,
-                    messages=[{"role": "user", "content": query+prompt}],
-                    response_format={ "type": "json_object" }
-                )
-                result=json.loads(llm_response.choices[0].message.content)
-                if not isinstance(result, dict):
-                    if isinstance(result, list) and len(result)>0 and isinstance(result[0], dict):
-                        result = result[0]
-                    else:
-                        self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
-                        continue
-                    if not all(k in result for k in format):
-                        self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
-                        continue
-                return result
-            except Exception as e:
-                self.logger.log('error', e)
-                time.sleep((self.max_retries-retry)*10)
-                retry-=1
-                continue
-        return None
-    
     def get_lang(self,query:str):
-        return self.get_json(f"tell me the language of the user query:\n {query}",{"lang":"language"})['lang']
+        return llm_gen_json(
+            self.llm,
+            self.model,
+            f"tell me the language of the user query:\n {query}",
+            {"lang":"language"},
+            debug=self.debug,
+            max_retries=self.max_retries
+        )['lang']
 
     def act_builder(self)->dict:
         prompt = f'''<actions>
@@ -74,7 +82,7 @@ Based on the user query, pick next action from actions above for the assistant''
         retry=self.max_retries
         while retry>0:
             try:
-                result = self.get_json(prompt,self.action_format)
+                result = llm_gen_json(prompt,self.action_format)
                 return result
             except Exception as e:
                 retry-=1
