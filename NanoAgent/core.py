@@ -36,7 +36,7 @@ MUST END EVERY STEP WITH ASKING THE USER TO CONFIRM THE STEP UNTIL THE USER REQU
 - final_result: action is final_result, input is "".
 </actions_intro>
 <user_query>
-{self.user_query+'\n'+answer}
+{'\n'.join([f'{msg["role"]}: {msg["content"]}' for msg in self.msg])}
 </user_query>
 
 Your task:
