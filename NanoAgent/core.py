@@ -28,14 +28,36 @@ MUST END EVERY STEP WITH ASKING THE USER TO CONFIRM THE STEP UNTIL THE USER REQU
         self.save_path = None
         self.user_query = None
 
+    def get_json(self,query:str,format:dict):
+        prompt= f"\noutput in json format :\n{str(format)}\n"
+        retry=self.max_retries
+        while retry>0:
+            try:
+                llm_response = self.llm.chat.completions.create(
+                    model=self.model,
+                    messages=[{"role": "user", "content": query+prompt}],
+                    response_format={ "type": "json_object" }
+                )
+                result=json.loads(llm_response.choices[0].message.content)
+                if not isinstance(result, dict):
+                    if isinstance(result, list) and len(result)>0 and isinstance(result[0], dict):
+                        result = result[0]
+                    else:
+                        self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
+                        continue
+                    if not all(k in result for k in format):
+                        self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
+                        continue
+                return result
+            except Exception as e:
+                self.logger.log('error', e)
+                time.sleep((self.max_retries-retry)*10)
+                retry-=1
+                continue
+        return None
+    
     def get_lang(self,query:str):
-        lang = self.llm.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "system", "content": "output the language of the user query in json format{{'lang': 'language'}}"},{"role": "user", "content": query}],
-            response_format={ "type": "json_object" }
-        )
-        lang = json.loads(lang.choices[0].message.content)['lang']
-        return lang
+        return self.get_json(f"tell me the language of the user query:\n {query}",{"lang":"language"})['lang']
 
     def act_builder(self)->dict:
         prompt = f'''<actions>
@@ -48,29 +70,12 @@ MUST END EVERY STEP WITH ASKING THE USER TO CONFIRM THE STEP UNTIL THE USER REQU
 </user_query>
 
 Your task:
-Based on the user query, pick next action from actions above for the assistant, output in json format :
-    {str(self.action_format)}'''
+Based on the user query, pick next action from actions above for the assistant'''
         retry=self.max_retries
         while retry>0:
             try:
-                response = self.llm.chat.completions.create(
-                    model=self.model,
-                    messages=[
-                    {"role": "user", "content": prompt}
-                ],
-                    response_format={ "type": "json_object" }
-                )
-                result = json.loads(response.choices[0].message.content)
-                if not isinstance(result, dict):
-                    if isinstance(result, list) and len(result)>0 and isinstance(result[0], dict):
-                        result = result[0]
-                    else:
-                        self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
-                        continue
-                    if not all(k in result for k in self.action_format):
-                        self.logger.log('error', f"Invalid action received, will retry\n{result}\n")
-                        continue
-                    return result
+                result = self.get_json(prompt,self.action_format)
+                return result
             except Exception as e:
                 retry-=1
                 self.logger.log('error', e)
