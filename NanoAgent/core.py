@@ -29,14 +29,14 @@ MUST END EVERY STEP WITH USER CONFIRMATION UNTIL THE ANSWER IS THE FINAL RESULT.
         self.save_path = None
         self.user_query = None
 
-    def act_builder(self,query:str)->dict:
+    def act_builder(self,answer:str)->dict:
         sysprmt = f'''Actions Intro:
 {'\n- '.join([f'- {action}' for action in self.action_instructions])}
 - think_more: push user to think different ways for the target,input is the suggestion.
 - final_result: action is final_result, input is "".
 
 Your task:
-Based on the user query {self.user_query+'\n'+query}, pick next action from\
+Based on the user query, pick next action from\
     {['think_more','final_result'] + list(self.action_functions.keys())} \
     for the user, output in json format :
     {str(self.action_format)}'''
@@ -48,7 +48,7 @@ Based on the user query {self.user_query+'\n'+query}, pick next action from\
                     model=self.model,
                     messages=[
                     {"role": "system", "content": sysprmt},
-                    {"role": "user", "content": query}
+                    {"role": "user", "content": self.user_query+'\n'+answer}
                 ],
                     response_format={ "type": "json_object" }
                 )
