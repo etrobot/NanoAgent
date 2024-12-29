@@ -133,7 +133,7 @@ Based on the user query, pick next action from actions above for the assistant, 
             self.msg.append({"role": "assistant", "content": answer})
             self.save_msg(self.save_path)
             
-            act = self.act_builder(answer)
+            act = self.act_builder()
             self.logger.log('action', f"\n{act['action']}({act['input']})")
             try:
                 encoding = tiktoken.encoding_for_model(self.model)
