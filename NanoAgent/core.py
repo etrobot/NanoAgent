@@ -69,7 +69,7 @@ MUST END EVERY STEP WITH ASKING THE USER TO CONFIRM THE STEP UNTIL THE USER REQU
 
     def act_builder(self)->dict:
         prompt = f'''<actions>
-{'\n- '.join([f'- {action}' for action in self.action_instructions])}
+{'\n'.join([f'- {action}' for action in self.action_instructions])}
 - think_more: push assistant to think different ways for the target,input is the suggestion.
 - final_result: decide if the context is enough to output the final result.
 </actions>
