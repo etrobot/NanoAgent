@@ -33,6 +33,13 @@ def llm_gen_json(llm:openai.Client,model:str,query:str,format:dict,debug=False,m
             continue
     return None
 
+def get_token_length(context:str,model:str)->int:
+    try:
+        encoding = tiktoken.encoding_for_model(model)
+    except KeyError:
+        encoding = tiktoken.get_encoding("cl100k_base")
+    return len(encoding.encode(context))
+
 class NanoAgent:
     def __init__(self,api_key:str,base_url:str,model:str,max_tokens:int,actions=[],debug=False,retry=20):                
         self.action_functions = {action.__name__: action for action in actions if callable(action)}
@@ -68,10 +75,13 @@ MUST END EVERY STEP WITH ASKING THE USER TO CONFIRM THE STEP UNTIL THE USER REQU
         )['lang']
 
     def act_builder(self)->dict:
+        final_instructions = '- final_result: decide if the context is enough to output the final result.'
+        if get_token_length(context = self.msg[-1]['content'],model=self.model) < 2000:
+            final_instructions = ''
         prompt = f'''<actions>
 {'\n'.join([f'- {action}' for action in self.action_instructions])}
 - think_more: push assistant to think different ways for the target,input is the suggestion.
-- final_result: decide if the context is enough to output the final result.
+{final_instructions}
 </actions>
 <user_query>
 {'\n'.join([f'{msg["role"]}: {msg["content"]}' for msg in self.msg])}
@@ -155,12 +165,9 @@ Based on the user query, pick next action from actions above for the assistant''
             
             act = self.act_builder()
             self.logger.log('action', f"\n{act['action']}({act['input']})")
-            try:
-                encoding = tiktoken.encoding_for_model(self.model)
-            except KeyError:
-                encoding = tiktoken.get_encoding("cl100k_base")
-            
-            if act['action']=='final_result' or len(encoding.encode(self.msg[-1]['content'])) >= self.max_tokens:
+            token_length = get_token_length(context = self.msg[-1]['content'],model=self.model)
+
+            if act['action']=='final_result' or token_length >= self.max_tokens:
                 self.end_msg['content']=self.end_msg['content']+'\noutput in language '+self.language
                 self.msg.append(self.end_msg)
             else:
